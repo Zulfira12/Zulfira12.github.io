@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ansor — Signal Escalation Prediction | EDA</title>
+<style>
+  :root {
+    --bg: #0b1120;
+    --panel: #111827;
+    --border: #1f2937;
+    --text: #e5e7eb;
+    --muted: #9ca3af;
+    --accent: #3b82f6;
+    --accent2: #22d3ee;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.65;
+  }
+  header {
+    padding: 64px 24px 40px;
+    text-align: center;
+    background: radial-gradient(circle at 50% 0%, rgba(59,130,246,0.15), transparent 60%);
+    border-bottom: 1px solid var(--border);
+  }
+  header .badge {
+    display: inline-block;
+    padding: 4px 14px;
+    border-radius: 999px;
+    background: rgba(59,130,246,0.12);
+    color: var(--accent2);
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    border: 1px solid rgba(59,130,246,0.3);
+  }
+  header h1 {
+    font-size: 2.2rem;
+    margin: 0 0 12px;
+    background: linear-gradient(90deg, #fff, var(--accent2));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  header p { color: var(--muted); max-width: 640px; margin: 0 auto; font-size: 1.05rem; }
+  main { max-width: 920px; margin: 0 auto; padding: 48px 24px 96px; }
+  section { margin-bottom: 56px; }
+  h2 {
+    font-size: 1.4rem;
+    border-left: 4px solid var(--accent);
+    padding-left: 14px;
+    margin-bottom: 20px;
+  }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin-top: 16px;
+  }
+  .stat {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+  }
+  .stat .num { font-size: 1.8rem; font-weight: 700; color: var(--accent2); }
+  .stat .label { color: var(--muted); font-size: 0.85rem; margin-top: 4px; }
+  ul { padding-left: 20px; color: var(--text); }
+  li { margin-bottom: 8px; }
+  .img-block { margin: 24px 0; }
+  .img-block img {
+    width: 100%;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    display: block;
+  }
+  .img-caption { color: var(--muted); font-size: 0.9rem; margin-top: 8px; text-align: center; }
+  .img-placeholder {
+    width: 100%;
+    aspect-ratio: 16/7;
+    border-radius: 12px;
+    border: 2px dashed var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+    font-size: 0.95rem;
+    text-align: center;
+    padding: 20px;
+  }
+  table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight: 600; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.03em; }
+  td.num { color: var(--accent2); font-weight: 600; }
+  footer {
+    text-align: center;
+    color: var(--muted);
+    padding: 32px 24px;
+    border-top: 1px solid var(--border);
+    font-size: 0.9rem;
+  }
+  code {
+    background: rgba(255,255,255,0.06);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.9em;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="badge">BI Hackathon 2026</div>
+  <h1>Signal Escalation Prediction</h1>
+  <p>Moliyaviy monitoring tizimidagi alertlarning eskalatsiya bo'lish ehtimolini bashorat qiluvchi ML model — jamoa <strong>Ansor</strong> tomonidan tayyorlangan EDA va yondashuv hisoboti.</p>
+</header>
+
+<main>
+
+  <section>
+    <h2>Muammoga yondashuv</h2>
+    <div class="card">
+      <p>O'zbekistondagi moliyaviy monitoring bo'limi mijozlarning tranzaksiya tarixi asosida avtomatik alertlar generatsiya qiladi. Har bir alert mutaxassis tomonidan ko'rib chiqiladi va yo rad etiladi, yo keyingi tekshiruv uchun eskalatsiya qilinadi.</p>
+      <p>Bizning vazifamiz — har bir alert uchun uning eskalatsiya qilinish ehtimolini bashorat qiluvchi model qurish edi. Buning uchun har bir alert (<code>signal_id</code>) ga tegishli tranzaksiyalar tarixini <strong>signal darajasidagi feature'larga</strong> aylantirdik (agregatsiya, ulush hisoblash, statistik ko'rsatkichlar) va bir nechta klassifikatsiya modelini solishtirdik.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Dataset tuzilishi</h2>
+    <div class="grid">
+      <div class="stat"><div class="num">14,000</div><div class="label">o'quv alertlari</div></div>
+      <div class="stat"><div class="num">~7M</div><div class="label">tranzaksiya qatori</div></div>
+      <div class="stat"><div class="num">17.2%</div><div class="label">eskalatsiya ulushi</div></div>
+      <div class="stat"><div class="num">499</div><div class="label">o'rtacha tranzaksiya/signal</div></div>
+    </div>
+    <div class="card" style="margin-top:16px;">
+      <p><strong>train_signals.csv</strong> — bitta qator = bitta alert (<code>signal_id</code>, <code>signal_sanasi</code>, <code>eskalatsiya</code>).</p>
+      <p><strong>train_transactions.parquet</strong> — relatsion jadval: har bir alertga bir nechta tranzaksiya to'g'ri keladi (<code>tranzaksiya_vaqti</code>, <code>kirim_chiqim</code>, <code>tranzaksiya_turi</code>, <code>miqdor_indeksi</code>).</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>EDA vizualizatsiyalari</h2>
+
+    <div class="img-block">
+      <img src="eda_1_target_time.png" alt="Target taqsimoti va vaqt bo'yicha signal soni" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+      <div class="img-placeholder" style="display:none;">eda_1_target_time.png — shu papkaga qo'shing</div>
+      <div class="img-caption">Target taqsimoti (0=rad, 1=eskalatsiya) va haftalik signal soni dinamikasi</div>
+    </div>
+
+    <div class="img-block">
+      <img src="eda_2_tx_types.png" alt="Kirim vs chiqim va tranzaksiya turlari" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+      <div class="img-placeholder" style="display:none;">eda_2_tx_types.png — shu papkaga qo'shing</div>
+      <div class="img-caption">Kirim/chiqim nisbati va tranzaksiya turlari (karta, bank o'tkazmasi, naqd, xalqaro) taqsimoti</div>
+    </div>
+
+    <div class="img-block">
+      <img src="eda_3_miqdor_dist.png" alt="Miqdor indeksi taqsimoti" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+      <div class="img-placeholder" style="display:none;">eda_3_miqdor_dist.png — shu papkaga qo'shing</div>
+      <div class="img-caption">Tranzaksiya miqdor indeksining taqsimoti</div>
+    </div>
+
+    <div class="img-block">
+      <img src="eda_4_escalated_vs_dismissed.png" alt="Escalated vs dismissed taqqoslash" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+      <div class="img-placeholder" style="display:none;">eda_4_escalated_vs_dismissed.png — shu papkaga qo'shing</div>
+      <div class="img-caption">Eskalatsiya qilingan va rad etilgan alertlar orasidagi xatti-harakat farqi (tranzaksiya soni, o'rtacha miqdor, kirim ulushi)</div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Asosiy topilmalar</h2>
+    <div class="card">
+      <ul>
+        <li><strong>Target balanssiz:</strong> 82.8% alert rad etilgan, 17.2% eskalatsiya qilingan — model o'qitishda <code>class_weight='balanced'</code> ishlatildi.</li>
+        <li><strong>Vaqt bo'yicha trend:</strong> haftalik signal soni 2025 o'rtalarida ~150-200 taga ko'tarilib, 2026 o'rtalaridan keskin pasaygan — bu tashqi omillar (masalan monitoring qoidalarining o'zgarishi) bilan bog'liq bo'lishi mumkin.</li>
+        <li><strong>Tranzaksiya turlari:</strong> karta (54%) va bank o'tkazmasi (39%) eng ko'p uchraydigan turlar, xalqaro tranzaksiyalar atigi 0.5% ni tashkil qiladi, lekin risk nuqtai nazaridan alohida ahamiyatga ega.</li>
+        <li><strong>Escalated vs dismissed farqi:</strong> guruhlar orasidagi o'rtacha statistik ko'rsatkichlar (tranzaksiya soni, o'rtacha miqdor, kirim ulushi) sezilarli farq qilmadi — bu signal nisbatan "sokin" (kuchli chiziqli ajratuvchi feature yo'q) ekanini bildiradi.</li>
+        <li><strong>Vaqt oynali feature'lar (1/7/30 kun) qo'shimcha foyda bermadi</strong> — aksincha, model overfit qilib, natijani yomonlashtirdi. Bu — kichik namunada (14,000 alert) ko'p feature qo'shish har doim ham yaxshilanish bermasligini ko'rsatadi.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section>
+    <h2>Feature engineering va modelga ta'siri</h2>
+    <div class="card">
+      <p>Tranzaksiyalar jadvali <code>signal_id</code> darajasiga quyidagi agregatsiyalar orqali aylantirildi:</p>
+      <ul>
+        <li>Tranzaksiya soni, o'rtacha/maksimal/minimal miqdor indeksi</li>
+        <li>Kirim va chiqim ulushlari</li>
+        <li>Tranzaksiya turlari bo'yicha ulushlar (karta, bank o'tkazmasi, naqd, xalqaro)</li>
+        <li>Oxirgi tranzaksiyadan signal sanasigacha bo'lgan kunlar farqi</li>
+      </ul>
+      <p>Uch model solishtirildi: <strong>LightGBM</strong>, <strong>RandomForest</strong> va <strong>LogisticRegression</strong>. RandomForest eng barqaror natija berdi va yakuniy model sifatida tanlandi.</p>
+      <table>
+        <thead><tr><th>Model</th><th>CV ROC-AUC</th></tr></thead>
+        <tbody>
+          <tr><td>LightGBM</td><td class="num">0.562</td></tr>
+          <tr><td>RandomForest</td><td class="num">0.591</td></tr>
+          <tr><td>LogisticRegression</td><td class="num">0.564</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>Xulosa</h2>
+    <div class="card">
+      <p>Ushbu vazifada tranzaksiya tarixidan olingan agregatsiyalangan feature'lar bilan alert eskalatsiyasini bashorat qiluvchi model qurdik. 5-fold cross-validation orqali <strong>RandomForest (ROC-AUC ≈ 0.59)</strong> eng barqaror model sifatida tanlandi. Vaqt oynali qo'shimcha feature'lar sinovdan o'tkazildi, ammo natijani yaxshilamadi — bu kichik hajmdagi datasetda soddaroq, umumlashtiruvchi feature to'plamining afzalligini ko'rsatdi.</p>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  Team Ansor — BI Hackathon 2026 · Signal Escalation Prediction
+</footer>
+
+</body>
+</html>
